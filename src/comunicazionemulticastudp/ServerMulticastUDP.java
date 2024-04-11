@@ -5,6 +5,7 @@ import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -16,12 +17,19 @@ import java.util.logging.Logger;
  * @author Monica Ciuchetti
  */
 public class ServerMulticastUDP {
-
+    //colore del prompt del Server
+    public static final String ANSI_BLUE = "\u001B[34m";
+    //colore del prompt del Client
+    public static final String RED_BOLD = "\033[1;31m";
+    //colore reset
+    public static final String RESET = "\033[0m";
      
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        
+        
         //porta del Server
         int port=2000;
         //oggetto Socket UDP 
@@ -42,12 +50,14 @@ public class ServerMulticastUDP {
         String messageOut;
                        
         try {
-            System.out.println("SERVER UDP");
+            
+            System.out.println(ANSI_BLUE + "SERVER UDP" + RESET);
             //1) SERVER IN ASCOLTO 
             //si crea il socket e si associa alla porta specifica
             dSocket = new DatagramSocket(port);
-            System.out.println("Apertura porta in corso!");
+            System.out.println(ANSI_BLUE + "Apertura porta in corso!" + RESET);
             
+            while(true){
             //si prepara il buffer per il messaggio da ricevere
             inBuffer = new byte[256];
             
@@ -63,8 +73,8 @@ public class ServerMulticastUDP {
             
             //si stampa a video il messaggio ricevuto dal client
             messageIn = new String(inPacket.getData(), 0, inPacket.getLength());
-            System.out.println("Messaggio ricevuto dal client " + clientAddress +
-                    ":" + clientPort + "> " + messageIn);
+            System.out.println(RED_BOLD + "Messaggio ricevuto dal client " + clientAddress +
+                    ":" + clientPort + "\n\t" + messageIn + RESET);
             
             //3)RISPOSTA AL CLIENT
             //si prepara il datagramma con i dati da inviare
@@ -73,26 +83,26 @@ public class ServerMulticastUDP {
             
             //si inviano i dati
             dSocket.send(outPacket);
-            System.out.println("Spedito messaggio al client.");
+            System.out.println(ANSI_BLUE + "Spedito messaggio al client: " + messageOut + RESET);
             
-            //4)INVIO MESSAGGIO AL GRUPPO
+            //4)INVIO MESSAGGIO AL GRUPPO DOPO UNA SOSPENSIONE 
             //si recupera l'IP gruppo
             groupAddress = InetAddress.getByName("239.255.255.250");
             //si inizializza la porta del gruppo
             int groupPort = 1900;
-            
+                
             //si prepara il datagramma con i dati da inviare al gruppo
             messageOut= "Benvenuti a tutti!";
             
-            outPacket = new DatagramPacket(messageOut.getBytes(), messageOut.length(), groupAddress, 1900);
+            outPacket = new DatagramPacket(messageOut.getBytes(), messageOut.length(), groupAddress, groupPort);
             
             //si inviano i dati
             dSocket.send(outPacket);
-            System.out.println("Spedito messaggio al gruppo.");
-
+            System.out.println(ANSI_BLUE + "Spedito messaggio al gruppo: " + messageOut + RESET);
+            }
         } catch (BindException ex) {
             Logger.getLogger(ServerMulticastUDP.class.getName()).log(Level.SEVERE, null, ex);
-            System.err.println("Portagià in uso");
+            System.err.println("Porta già in uso");
         } catch (SocketException ex) {
             Logger.getLogger(ServerMulticastUDP.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("Errore di creazione del socket e apertura del server");
